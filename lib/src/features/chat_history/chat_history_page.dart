@@ -5,18 +5,21 @@ import 'package:chat_ai/src/navigation/app_router.gr.dart';
 import 'package:chat_ai/styles/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:gap/gap.dart';
+import 'package:responsive_builder/responsive_builder.dart';
 
 class ChatHistoryPage extends StatelessWidget {
   const ChatHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final deviceType = getDeviceType(MediaQuery.sizeOf(context));
     return Scaffold(
       backgroundColor: AppColors.menuColor,
       body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
+        padding: EdgeInsets.symmetric(
+          horizontal: deviceType == DeviceScreenType.mobile ? 8 : 16,
           vertical: 24,
         ),
         child: Column(
@@ -50,13 +53,20 @@ class ChatHistoryPage extends StatelessWidget {
             ),
             const Gap(24),
             TextButton(
-              onPressed: () => context.router.replace(
-                ChatMessagesRoute(
-                  threadId: ChatMessagesPage.defaultId,
-                ),
-              ),
+              onPressed: () {
+                if (deviceType == DeviceScreenType.mobile) {
+                  ZoomDrawer.of(context)?.close();
+                }
+                context.router.replace(
+                  ChatMessagesRoute(
+                    threadId: ChatMessagesPage.defaultId,
+                  ),
+                );
+              },
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(
+                  vertical: deviceType == DeviceScreenType.mobile ? 8 : 16,
+                ),
                 backgroundColor: AppColors.inputBackgroundColor,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(
@@ -91,15 +101,21 @@ class ChatHistoryPage extends StatelessWidget {
                       radius: Radius.circular(8),
                       thumbColor: const Color(0xff424242),
                       padding: EdgeInsets.all(2),
+                      thumbVisibility: deviceType != DeviceScreenType.mobile,
                       child: ListView.builder(
                         itemCount: chats.threadList.length,
                         shrinkWrap: true,
                         itemBuilder: (_, index) => ListTile(
-                          onTap: () => context.replaceRoute(
-                            ChatMessagesRoute(
-                              threadId: chats.threadList[index].id,
-                            ),
-                          ),
+                          onTap: () {
+                            if (deviceType == DeviceScreenType.mobile) {
+                              ZoomDrawer.of(context)?.close();
+                            }
+                            context.replaceRoute(
+                              ChatMessagesRoute(
+                                threadId: chats.threadList[index].id,
+                              ),
+                            );
+                          },
                           hoverColor: AppColors.inputBackgroundColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(
@@ -112,7 +128,8 @@ class ChatHistoryPage extends StatelessWidget {
                           ),
                           title: Text(
                             chats.threadList[index].name,
-                            maxLines: 1,
+                            maxLines:
+                                deviceType == DeviceScreenType.mobile ? 1 : 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: IconButton(

@@ -45,6 +45,7 @@ class ChatMessagesPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget build(BuildContext context) {
+    final deviceType = getDeviceType(MediaQuery.sizeOf(context));
     return Scaffold(
       backgroundColor: AppColors.surfaceBackgroundColor,
       appBar: AppBar(
@@ -104,6 +105,7 @@ class ChatMessagesPage extends StatelessWidget implements AutoRouteWrapper {
                     ),
                   ChatMessagesSuccess(:final chatMessages) => RawScrollbar(
                       thickness: 8,
+                    thumbVisibility: deviceType != DeviceScreenType.mobile,
                       radius: Radius.circular(8),
                       thumbColor: const Color(0xff424242),
                       padding: EdgeInsets.all(2),
@@ -166,7 +168,7 @@ class ChatMessagesPage extends StatelessWidget implements AutoRouteWrapper {
                       onPressed: null,
                       icon: const Icon(
                         Icons.attach_file,
-                        color: AppColors.textPrimaryColor,
+                        // color: AppColors.textPrimaryColor,
                       ),
                     ),
                     Expanded(
@@ -237,7 +239,7 @@ class ChatMessagesPage extends StatelessWidget implements AutoRouteWrapper {
   }) =>
       showDialog(
         context: context,
-        barrierColor: Color(0x38000000),
+        barrierColor: Colors.black45,
         builder: (_) => PhotoViewGallery.builder(
           scrollPhysics: const BouncingScrollPhysics(),
           itemCount: imageUrls.length,
@@ -316,6 +318,7 @@ class _UserChatMessageItem extends StatelessWidget {
                 InkWell(
                   onTap: onRetry,
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.error_outline,
@@ -352,6 +355,7 @@ class _AssistantChatMessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deviceType = getDeviceType(MediaQuery.sizeOf(context));
     final images = message.imageUrls;
     final subImages = images.sublist(0, min(images.length, 3));
     final child = Row(
@@ -388,6 +392,8 @@ class _AssistantChatMessageItem extends StatelessWidget {
         ),
       ],
     );
+    final imageSize = deviceType == DeviceScreenType.mobile ? 61.0 : 128.0;
+
     return Align(
       alignment: Alignment.centerLeft,
       child: Padding(
@@ -398,62 +404,73 @@ class _AssistantChatMessageItem extends StatelessWidget {
         child: images.isEmpty
             ? child
             : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   child,
                   Gap(16),
                   SizedBox.square(
-                    dimension: 128,
+                    dimension:
+                        deviceType == DeviceScreenType.mobile ? 128 : 600,
                     child: Wrap(
+                      runSpacing: 1,
+                      spacing: 1,
                       children: [
                         for (final imageUrl in subImages)
                           _ImageItemPreview(
                             imageUrl: imageUrl,
+                            imageSize: imageSize,
                             onImagePressed: () => _onImagePressed(imageUrl),
                           ),
                         if (images.length > subImages.length)
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              _ImageItemPreview(
-                                imageUrl: images[subImages.length],
-                                onImagePressed: () =>
-                                    _onImagePressed(images[subImages.length]),
-                              ),
-                              if (images.length > 4)
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(8),
-                                  ),
-                                  child: BackdropFilter(
-                                    filter:
-                                        ImageFilter.blur(sigmaX: 1, sigmaY: 1),
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0x50000000),
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(8),
-                                        ),
-                                        border: Border.fromBorderSide(
-                                          BorderSide(
-                                            color: Color(0x4DFFFFFF),
-                                            width: 1,
+                          SizedBox.fromSize(
+                            size: Size.square(
+                              imageSize,
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                _ImageItemPreview(
+                                  imageUrl: images[subImages.length],
+                                  imageSize: imageSize,
+                                  onImagePressed: () =>
+                                      _onImagePressed(images[subImages.length]),
+                                ),
+                                if (images.length > 4)
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 1, sigmaY: 1),
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0x50000000),
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(8),
+                                          ),
+                                          border: Border.fromBorderSide(
+                                            BorderSide(
+                                              color: Color(0x4DFFFFFF),
+                                              width: 1,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      child: Text(
-                                        "+${images.length - 4}",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 16,
-                                          color: AppColors.textPrimaryColor,
-                                          letterSpacing: -0.08,
+                                        child: Text(
+                                          "+${images.length - 4}",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                            color: AppColors.textPrimaryColor,
+                                            letterSpacing: -0.08,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                       ],
                     ),
@@ -472,10 +489,12 @@ class _AssistantChatMessageItem extends StatelessWidget {
 class _ImageItemPreview extends StatelessWidget {
   const _ImageItemPreview({
     required this.imageUrl,
+    required this.imageSize,
     required this.onImagePressed,
   });
 
   final String imageUrl;
+  final double imageSize;
   final VoidCallback onImagePressed;
 
   @override
@@ -487,7 +506,7 @@ class _ImageItemPreview extends StatelessWidget {
         child: Container(
           constraints: BoxConstraints.tight(
             Size.square(
-              61,
+              imageSize,
             ),
           ),
           decoration: BoxDecoration(

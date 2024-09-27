@@ -76,6 +76,7 @@ class Message extends Equatable {
         messageContent,
         messageDate,
         imageUrls,
+        status,
       ];
 
   Message copyWith({

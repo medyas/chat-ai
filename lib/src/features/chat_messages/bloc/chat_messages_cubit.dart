@@ -85,7 +85,7 @@ class ChatMessagesCubit extends Cubit<ChatMessagesState> {
                   thread.chatAnswer,
                 ],
               ),
-              refreshThreads: threadId == null,
+              refreshThreads: (threadId == null || threadId == ChatMessagesPage.defaultId),
             ),
           );
         },
